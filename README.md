@@ -1,4 +1,11 @@
 MariaDbActiveRecord
 ===================
 
-MariaDbActiveRecord
+Требования к разработке.
+* Надо будет сделать экземпл как этоим пользоватся
+* Надо чтобы код проходил челез phplint
+* Надо чтобы код был полностью покрыт phpdoc
+* Надо чтобы код работал на MariaDb >= 5.3
+
+Лицензия:
+LGPL, http://www.gnu.org/copyleft/lesser.html
