@@ -35,11 +35,12 @@ class MariaModel {
 	/**
 	* Check column name is valid
 	*
+	* @throws MariaModelException
 	* @param string $value
 	* @return string
 	**/
 	protected static function checkColumnsName($value){
-		if (! (bool)preg_match(self::$column_format, $value)){
+		if (preg_match(self::$column_format, $value) === 0){
 		    throw new MariaModelException(MariaModelException::BAD_COLUMN_NAME_SYNTAX);
 		}
 		return $value;
@@ -48,6 +49,7 @@ class MariaModel {
 	/**
 	* Check column type
 	*
+	* @throws MariaModelException
 	* @param string $type
 	* @return string
 	**/
@@ -62,11 +64,11 @@ class MariaModel {
 	 * Parse Column And Return Array Or String - column of Maria
 	 * @param string $name
 	 *
-	 * @return array|string -  array('column'=>'name', 'id'=>id) | String 'name'
+	 * @return mixed -  array('column'=>'name', 'id'=>id) | String 'name'
 	 */
 	private function parseColumn($name){
-		if (preg_match(self::$column_format,$name, $matches)){
-		    return array($matches[1], (int)$matches[2]);
+		if (preg_match(self::$column_format,$name, $matches) !== 0){
+		    return array($matches[1], $matches[2]);
 		}else{
 		    return $name;
 		}
@@ -74,89 +76,92 @@ class MariaModel {
 	
 	/**
 	 * Обратное для parseColumn
-	 * @param  array  $column_and_id - array('name',id)
+	 *
+	 * @throws MariaModelException
+	 * @param  mixed  $column_and_id - array('name',id)
 	 *
 	 * @return string
 	 */
-	private function encodeColumn(array $column_and_id){
-		return $column_and_id[0]."_".$column_and_id[1];
+	private function encodeColumn($column_and_id){
+		if (is_string($column_and_id)){
+			return (string)$column_and_id;
+		}else if (is_array($column_and_id)){
+			return (string)($column_and_id[0]) . "_" . (string)($column_and_id[1]);
+		}else{
+			throw new MariaModelException(MariaModelException::BAD_COLUMN_PHP_TYPE_IN_PARSE);
+		}
 	}
 	
-	private function encodeColumn($column){
-		return $column;
-	}
 	
+	/**
+	* Build prefix
+	* @return string
+	*/
 	private function buildPrefix(){
-		return "SELECT "./* все не динамические столбцы */./*все динамические столбцы*/.' FROM '.$table_name;
+		/* все не динамические столбцы + все динамические столбцы*/
+		$columns = '*';
+		return 'SELECT '.$columns.' FROM '.$this->table_name;
 	}
 	
 	/**
 	 * 
-	 * @param unknown_type $array
-	 * @param unknown_type $params
-	 * @return STRING of sql
+	 * @param string $conds
+	 * @param array $params
+	 * @return string - sql where
 	 */
-	private function buildWhere($array, $params=array()){
-		
+	private function buildWhere($conds, $params=array()){
+		return "WHERE ";
 	}
 	
 	/**
-	 * @param unknown_type $column
-	 * @param unknown_type $value
+	 * @param string $column
+	 * @param string $value
 	 * 
-	 * @return MariaActiveRecord|null $record
+	 * @return MariaActiveRecord $record
 	 */
 	public function findByColumnValue($column, $value){
-		//
+		return null;
 	}
 	
 	/**
-	 * @param unknown_type $column
-	 * @param unknown_type $value
+	 * @param string $column
+	 * @param string $value
 	 *
 	 * @return array of MariaActiveRecord|array() $record
 	 */
 	public function findAllByColumnValue($column, $value){
-		//
+		return array();
 	}
 	
 	/**
-	 * @param unknown_type $array - array( '$column_$id'=>$value )
-	 * @param unknown_type $params - array( ':name'=>$value )
-	 * 
-	 * $this->findByDynamicAttributes(array('field_n_1'=>':user_id'), array(':user_id'=>'$value'));
-	 * @return MariaActiveRecord|null $record
-	 */
-	public function findByDynamicAttributes($array, $params=array()){
-		
-	}
-
-	/**
-	 * @param unknown_type $array - array( '$column_$id'=>$value )
-	 * @param unknown_type $params - array( ':name'=>$value )
-	 *
 	 * $this->findAllByDynamicAttributes(array('field_n_1'=>':user_id', 'title'=>'123'), array(':user_id'=>'$value'));
-	 * @return array of MariaActiveRecord|array() $record
+	 * @param array $arr - array( '$column_$id'=>$value )
+	 * @param array $params - array( ':name'=>$value )
+	 *
+	 * @return mixed $record
 	 */
-	public function findByDynamicAttributes($array, $params=array()){
-		
+	public function findByDynamicAttributes($arr, $params=array()){
+		return array();
 	}
 	
-	public function deleteAllByDynamicAttributes($conditions_array, $params=array()){
-	
+	/**
+	* 
+	* @param string $conditions
+	* @param array $params
+	* @return bool
+	*/
+	public function deleteAllByDynamicAttributes($conditions, $params=array()){
+		return true;
 	}
 	
 	/**
 	 * 
-	 * @param unknown_type $to_set - array('column'=>value, 'field_n_2'=>value);
-	 * @param unknown_type $condition_array
-	 * @param unknown_type $params
+	 * @param array $to_set - array('column'=>value, 'field_n_2'=>value);
+	 * @param string $condition
+	 * @param array $params
+	 * @return bool
 	 */
-	public function updateAllByDynamicAttributes($to_set, $condition_array, $params=array()){
-		
-	}
-	
-	public function insert($to_set){
-		
+	public function updateAllByDynamicAttributes($to_set, $condition, $params=array()){
+		return true;
 	}
 }
