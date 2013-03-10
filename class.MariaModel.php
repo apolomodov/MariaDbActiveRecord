@@ -1,51 +1,68 @@
+<?php /*. require_module 'standard'; .*/ ?>
+<?php /*. require_module 'pcre'; .*/ ?>
 <?php
 /**
  * 
  * @author piroman
  *
- * @require: mysql_escape_string(htmlspecialchars())
  */
 class MariaModel {
-	protected $table_name; //string table name
-	protected $columns; // array('fields_1','field_2','fields_3');
-	protected $columns_types;  // array('char(255)','int','char(4096)');
+	protected /*. string .*/ $table_name; //string table name
+	protected /*. array .*/ $columns; // array('fields_1','field_2','fields_3');
+	protected /*. array .*/ $columns_types;  // array('char(255)','int','char(4096)');
 	
-	private static $types = array('char(255)','int','char(4096)');
-	private static $column_format = '/^(.*)_([0-9]+)$/';
+	private static /*. array .*/ $types = array('char(255)','int','char(4096)');
+	private static /*. string .*/ $column_format = '/^(.*)_([0-9]+)$/';
 
 	/**
 	* Create Maria Model
 	*
-	* @param String $table_name
-	* @param Array $columns
-	* @param Array $column_types
+	* @param string $table_name
+	* @param array $columns
+	* @param array $column_types
+	*
+	* @return void
 	*/
-	public function __contruct($table_name, $columns, $column_types){
+	public function __construct($table_name, $columns, $column_types)
+	{
 		//чекнуть $this->columns; на то что это массив вида array('field_1','field_2','field_3');
-		$this->columns = array_filter(array(self,'checkColumnsName'), $columns);
+		$this->columns = array_filter(array(__CLASS__,'checkColumnsName'), $columns);
 		//чекнуть $this->columns_type; на то что это массив вида array('field_1'=>'char(255)|int|char(4096)');
-		$this->columns_types = array_filter(array(self,'checkColumnsTypes'), $column_types);
+		$this->columns_types = array_filter(array(__CLASS__,'checkColumnsTypes'), $column_types);
 		$this->table_name = $table_name;
 	}
 	
+	/**
+	* Check column name is valid
+	*
+	* @param string $value
+	* @return string
+	**/
 	protected static function checkColumnsName($value){
-		if (!preg_match(self::$column_format, $value)){
+		if (! (bool)preg_match(self::$column_format, $value)){
 		    throw new MariaModelException(MariaModelException::BAD_COLUMN_NAME_SYNTAX);
 		}
 		return $value;
 	}
 	
+	/**
+	* Check column type
+	*
+	* @param string $type
+	* @return string
+	**/
 	protected static function checkColumnsType($type){
 		if (!in_array($type, self::$types)){
 		    throw new MariaModelException(MariaModelException::BAD_COLUMN_TYPE_SYNTAX);
 		}
+		return $type;
 	}
 
 	/**
 	 * Parse Column And Return Array Or String - column of Maria
 	 * @param string $name
 	 *
-	 * @return Array|String -  array('column'=>'name', 'id'=>id) | String 'name'
+	 * @return array|string -  array('column'=>'name', 'id'=>id) | String 'name'
 	 */
 	private function parseColumn($name){
 		if (preg_match(self::$column_format,$name, $matches)){
@@ -57,15 +74,15 @@ class MariaModel {
 	
 	/**
 	 * Обратное для parseColumn
-	 * @param  Array  $column_and_id - array('name',id)
+	 * @param  array  $column_and_id - array('name',id)
 	 *
-	 * @return String
+	 * @return string
 	 */
-	private function encodeColumn(Array $column_and_id){
+	private function encodeColumn(array $column_and_id){
 		return $column_and_id[0]."_".$column_and_id[1];
 	}
 	
-	private function encodeColumn(string $column){
+	private function encodeColumn($column){
 		return $column;
 	}
 	
