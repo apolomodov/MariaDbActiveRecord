@@ -18,7 +18,7 @@ abstract class MariaActiveRecord {
 		//чекнуть $this->columns; на то что это массив вида array(0=>'fields_1',1=>'field_2',2=>'fields_3');
 		//чекнуть $this->columns_type; на то что это массив вида array(0=>'fields_1',1=>'field_2',2=>'fields_3');
 		
-		$attrs = array(); //'fields_1'=>array(),'fields_2'=>array(), 'fields_3'=>array()
+		$this->attrs = array(); //'fields_1'=>array(),'fields_2'=>array(), 'fields_3'=>array()
 		$this->isNewRecord = true; 
 	}
 	

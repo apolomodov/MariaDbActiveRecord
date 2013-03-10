@@ -6,35 +6,67 @@
  * @require: mysql_escape_string(htmlspecialchars())
  */
 class MariaModel {
-  
 	protected $table_name; //string table name
 	protected $columns; // array('fields_1','field_2','fields_3');
-	protected $columns_types;  // array('char(255)','int','text');
+	protected $columns_types;  // array('char(255)','int','char(4096)');
 	
+	private static $types = array('char(255)','int','char(4096)');
+	private static $column_format = '/^(.*)_([0-9]+)$/';
+
+	/**
+	* Create Maria Model
+	*
+	* @param String $table_name
+	* @param Array $columns
+	* @param Array $column_types
+	*/
 	public function __contruct($table_name, $columns, $column_types){
-		//чекнуть $this->columns; на то что это массив вида array(0=>'fields_1',1=>'field_2',2=>'fields_3');
-		//чекнуть $this->columns_type; на то что это массив вида array(0=>'fields_1',1=>'field_2',2=>'fields_3');
+		//чекнуть $this->columns; на то что это массив вида array('field_1','field_2','field_3');
+		$this->columns = array_filter(array(self,'checkColumnsName'), $columns);
+		//чекнуть $this->columns_type; на то что это массив вида array('field_1'=>'char(255)|int|char(4096)');
+		$this->columns_types = array_filter(array(self,'checkColumnsTypes'), $column_types);
+		$this->table_name = $table_name;
 	}
 	
+	protected static function checkColumnsName($value){
+		if (!preg_match(self::$column_format, $value)){
+		    throw new MariaModelException(MariaModelException::BAD_COLUMN_NAME_SYNTAX);
+		}
+		return $value;
+	}
+	
+	protected static function checkColumnsType($type){
+		if (!in_array($type, self::$types)){
+		    throw new MariaModelException(MariaModelException::BAD_COLUMN_TYPE_SYNTAX);
+		}
+	}
+
 	/**
-	 * 
-	 * @param $name string
-	 * @return Array array('column'=>'name', 'id'=>id), String 'name'
+	 * Parse Column And Return Array Or String - column of Maria
+	 * @param string $name
+	 *
+	 * @return Array|String -  array('column'=>'name', 'id'=>id) | String 'name'
 	 */
 	private function parseColumn($name){
-		
+		if (preg_match(self::$column_format,$name, $matches)){
+		    return array($matches[1], (int)$matches[2]);
+		}else{
+		    return $name;
+		}
 	}
 	
 	/**
-	 * 
+	 * Обратное для parseColumn
+	 * @param  Array  $column_and_id - array('name',id)
+	 *
 	 * @return String
 	 */
 	private function encodeColumn(Array $column_and_id){
-		
+		return $column_and_id[0]."_".$column_and_id[1];
 	}
 	
 	private function encodeColumn(string $column){
-		
+		return $column;
 	}
 	
 	private function buildPrefix(){
@@ -105,7 +137,7 @@ class MariaModel {
 	 */
 	public function updateAllByDynamicAttributes($to_set, $condition_array, $params=array()){
 		
-	}	
+	}
 	
 	public function insert($to_set){
 		
